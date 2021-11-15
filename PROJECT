@@ -1,0 +1,16 @@
+domain: zt1
+layout:
+- go.kubebuilder.io/v3
+projectName: zt1
+repo: external
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: zt1
+  group: apps
+  kind: ExternalvisitSet
+  path: external/api/v1alpha1
+  version: v1alpha1
+version: "3"

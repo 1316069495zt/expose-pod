@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "8"
+    field.cattle.io/publicEndpoints: '[{"addresses":["172.24.150.5"],"port":32007,"protocol":"TCP","serviceName":"print:print","allNodes":true},{"addresses":["172.24.150.5"],"port":80,"protocol":"HTTP","serviceName":"print:print","ingressName":"print:print","hostname":"print.yzf.best","path":"/","allNodes":true}]'
+  creationTimestamp: "2021-09-24T01:58:37Z"
+  generation: 14
+  labels:
+    app: print
+    io.cattle.field/appId: print
+  name: print
+  namespace: print
+  resourceVersion: "115446852"
+  selfLink: /apis/apps/v1/namespaces/print/deployments/print
+  uid: 842fb387-04c4-4c59-9938-b6bd9ee21b3f
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: print
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: print
+    spec:
+      containers:
+        - args:
+            - -Xms256m
+            - -Xmx256m
+          env:
+            - name: APOLLO_META
+              value: http://apollo.dev.yzf.net
+            - name: APOLLO_CLUSTER
+              value: default
+          image: harbor.yzf.best:1180/print/print:v1.2.10-develop
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8090
+              scheme: HTTP
+            initialDelaySeconds: 300
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 2
+          name: app
+          ports:
+            - containerPort: 8090
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8090
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 2
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 1Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /logs
+              name: logs
+        - image: harbor.yzf.best:1180/test/filebeat:v1
+          imagePullPolicy: Always
+          name: filebeat-sidecar
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /data/app/logs
+              name: logs
+            - mountPath: /filebeat/conf
+              name: filebeat-conf
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - emptyDir:
+            sizeLimit: 10Gi
+          name: logs
+        - configMap:
+            defaultMode: 420
+            name: print-filebeat-conf
+          name: filebeat-conf
+status:
+  availableReplicas: 1
+  conditions:
+    - lastTransitionTime: "2021-09-24T01:58:37Z"
+      lastUpdateTime: "2021-10-08T02:40:16Z"
+      message: ReplicaSet "print-69dccf9686" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2021-10-14T06:03:06Z"
+      lastUpdateTime: "2021-10-14T06:03:06Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+  observedGeneration: 14
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1

@@ -1,0 +1,10 @@
+apiVersion: apps.zt1/v1alpha1
+kind: ExternalvisitSet
+metadata:
+  name: externalvisitset-sample
+spec:
+  # Add fields here
+  selector:
+    matchLabels:
+      external-visit: "true"
+
